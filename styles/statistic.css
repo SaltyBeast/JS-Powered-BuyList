@@ -1,0 +1,62 @@
+.info-div {
+  background-color: white;
+  height: 75px;
+  border-top-right-radius: 5px;
+  border-top-left-radius: 5px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid lightgray;
+}
+
+.info {
+  margin-left: 15px;
+  font-weight: bold;
+  font-size: 22px;
+}
+
+.info-div.bought {
+  border-top: 1px solid lightgray;
+  border-top-right-radius: 0;
+  border-top-left-radius: 0;
+}
+
+.remaining-div, .sold-div {
+  width: 93%;
+  height: auto;
+  padding: 15px 15px;
+  padding-right: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  padding-left: 12px;
+}
+
+.sold-div {
+  border-bottom: none;
+}
+
+.product-item, .product-item-slesh {
+  background-color: rgb(231, 231, 231);
+  margin-left: 3px;
+  padding: 5px;
+  font-family: Roboto;
+  font-weight: bold;
+  font-size: 13px;
+  color: rgb(74, 74, 74);
+  border-radius: 4px;
+  padding: 8px 8px; 
+  margin-top: 3px;
+}
+
+.product-item-slesh {
+  text-decoration: line-through;
+}
+
+.amount-statistic, .amount-statistic-slesh {
+  background-color: rgb(255, 140, 1);
+  padding: 4px;
+  padding-left: 7.5px;
+  padding-right: 7.5px;
+  color: white;
+  border-radius: 100px;
+}
