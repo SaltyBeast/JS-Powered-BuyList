@@ -1,17 +1,57 @@
 const addButtton = document.querySelector(".add-button");
 const addInput = document.querySelector(".add-input");
+var operationsDiv = document.querySelector(".operations-div");
+var statisticsDiv = document.querySelector(".statistics-div");
 
-// adding new product to the list
+
+document.addEventListener('DOMContentLoaded', getProducts);
+const names = [];
+let allAvailiableProduct;
+
+function fillWithDefaultValues() {
+  for (let i = 0; i < allAvailiableProduct.length; i++) {
+    for(const section of allAvailiableProduct[i].children) {
+      if(section.className == "left-section") {
+        for(const element of section.children) {
+          names.push(element.textContent.trim());
+        }
+        break;
+      }
+    }  
+  }
+}
+
+function contains(names, newName) {
+  for(const name of names) {
+    if(name == newName) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 addButtton.addEventListener("click", addNewProduct);  
 addInput.addEventListener("keydown", (event) => {
   if (event.key == "Enter") {
     addNewProduct();
+    // saveData();
   }
 });
 
 function addNewProduct() {
   const getInfoFromInput = document.
   getElementsByClassName("add-input")[0].value;
+
+  if(contains(names, getInfoFromInput)) {
+    alert("There is already a product with that name!");
+    document.getElementsByClassName("add-input")[0].value = "";
+    document.getElementsByClassName("add-input")[0].focus();
+    return;
+  } else {
+    names.push(getInfoFromInput);
+  }
+  console.log(names);
 
   if(getInfoFromInput !== "") {
     const newProduct = document.createElement("section");
@@ -96,7 +136,7 @@ function addNewProduct() {
     document.getElementsByClassName("add-input")[0].focus();
     newLeftItem(getInfoFromInput, 1);
   }
-
+  saveData();
 }
 
 function newLeftItem(name, amount) {
@@ -111,6 +151,7 @@ function newLeftItem(name, amount) {
   );
   productItem.appendChild(amountOfItem);
   document.querySelector(".remaining-div").appendChild(productItem);
+  saveData();
 }
 
 const allProducts = document.querySelectorAll(".product-div");
@@ -128,13 +169,28 @@ for(let i = 0; i < allProducts.length; i++) {
       }
     }
   }
-  newLeftItem(nameOfTheProduct, amountOfTheProduct)
+  newLeftItem(nameOfTheProduct, amountOfTheProduct);
 }
 
 function deleteProduct(element) {
   let parent = element.parentNode.parentNode;
   element.parentNode.parentNode.remove();
   deleteLeftItems(parent);
+  names.splice(findIndexOfNameToRemove(parent), 1);
+  saveData();
+}
+
+function findIndexOfNameToRemove(parent) {
+  let name;
+  for(const section of parent.children) {
+    if(section.className == "left-section") {
+      for(const element of section.children) {
+        name = element.textContent.trim()
+      }
+      break;
+    }
+  }
+  return findName(name);
 }
 
 document.querySelector(".operations-div").
@@ -188,6 +244,7 @@ function makeBoughtItem(parent) {
   );
   item.appendChild(amountOfItem);
   soldDiv.appendChild(item);
+  saveData();
 }
 
 function deleteLeftItems(parent) {
@@ -206,6 +263,7 @@ function deleteLeftItems(parent) {
       element.remove();
     }
   }
+  saveData();
 }  
 
 function changeLeftItems(parent, oldName) {
@@ -259,6 +317,7 @@ function changeStateToLeft(element) {
   parent.appendChild(buyButton);
   parent.appendChild(crossButton);
   addButtonsAndText(parent);
+  saveData();
 }
 
 function returnProductToLeft(parent) {
@@ -367,8 +426,8 @@ function changeStateToBought(element) {
   noBuyButton.appendChild(document.createTextNode("Не куплено"));
   parent.appendChild(noBuyButton);
   makeBoughtItem(mainParent);
+  saveData();
 } 
-
 
 function removePlusMinusAndMakeText(element) {
   let parent = element.parentNode.parentNode;
@@ -412,13 +471,22 @@ function changeNameOfProduct(element) {
     }
   });
   textInput.addEventListener("blur", () => {
-    replaceNames(textInput, parent);
+    replaceNames(textInput, parent, oldName);
     changeLeftItems(parent.parentNode, oldName);
+    saveData();
   });
 }  
 
-function replaceNames(textInput, parent) {
-  let newName = textInput.value;
+function replaceNames(textInput, parent, oldName) {
+  let newName;
+  if(contains(names, textInput.value)) {
+    newName = oldName;
+    alert("You already have product with such name!");
+  } else {
+    newName = textInput.value;
+    updateInArray(findName(oldName), newName);
+    console.log(names);
+  }
   textInput.remove();
   const newNameLabel = document.createElement("label");
   newNameLabel.setAttribute("class", "product-name-text");
@@ -427,6 +495,18 @@ function replaceNames(textInput, parent) {
   parent.appendChild(newNameLabel);
 }
 
+function updateInArray(pos, newName) {
+  names[pos] = newName;
+}
+
+function findName(oldName) {
+  for(let i = 0; i < names.length; i++) {
+    if(names[i] == oldName) {
+      return i;
+    }
+  }
+  return null;
+}
 
 function incrementProductAmount(element) {
   let parent = element.parentNode.parentNode;
@@ -452,6 +532,7 @@ function incrementProductAmount(element) {
   }
   let oldName = findOutOldName(parent);
   changeLeftItems(parent, oldName);
+  saveData();
 }
 
 function findOutOldName(parent) {
@@ -489,4 +570,156 @@ function decreaseProductAmount(element) {
   }
   let oldName = findOutOldName(parent);
   changeLeftItems(parent, oldName);
+  saveData();
+}
+
+function saveData() {
+  console.log(getIncomeRows());
+  console.log(getIncomeRows());
+  const data = getIncomeRows().map(row => {
+      if(!row.querySelector(".no-buy-button")) {
+        return {
+          name: row.querySelector(".product-name-text").textContent.trim(),
+          amount: row.querySelector(".amount").value,
+          buttonText: row.querySelector(".buy-button").textContent.trim(),
+          isSold: false
+        }
+      } else {
+        return {
+          name: row.querySelector(".product-name-slesh").textContent.trim(),
+          amount: row.querySelector(".amount").value,
+          buttonText: row.querySelector(".no-buy-button").textContent.trim(),
+          isSold: true
+        }
+      }
+  });
+
+  localStorage.setItem("products", JSON.stringify(data));
+}
+
+function getIncomeRows() {
+  return Array.from(document.querySelectorAll(".operations-div .product-div"));
+}
+
+function getProducts() {
+  let products;
+  console.log(localStorage.getItem("products"));
+  if(localStorage.getItem("products") === null) {
+    products = [];
+  } else {
+    products = JSON.parse(localStorage.getItem("products"));
+  }
+  products.forEach(function(product){
+    const newProduct = document.createElement("section");
+    newProduct.setAttribute("class", "product-div");
+    // left section
+    const leftSection = document.createElement("section");
+    leftSection.setAttribute("class", "left-section");
+      // name of the product
+    const productName = document.createElement("label");
+    if(product.isSold) {
+      productName.setAttribute("class", "product-name-slesh");
+    } else {
+      productName.setAttribute("class", "product-name-text");
+    }
+    productName.setAttribute("for", "name");
+    productName.appendChild(document.createTextNode(product.name));
+    leftSection.appendChild(productName);
+    
+    // middle section
+    const middleSection = document.createElement("section");
+    middleSection.setAttribute("class", "middle-section");
+
+    const rightSection = document.createElement("section");
+    rightSection.setAttribute("class", "right-section");
+
+    if(!product.isSold) {
+      const minusButton = document.createElement("button");
+      if(product.amount > 1) {
+        minusButton.setAttribute("class", "minus-button");
+      } else {
+        minusButton.setAttribute("class", "minus-button-disable");
+      }
+      minusButton.appendChild(document.createTextNode("–"));
+      const tooltipMinus = document.createElement("section");
+      tooltipMinus.setAttribute("class", "tooltip-div");
+      const tooltipMinusText = document.createElement("label");
+      tooltipMinusText.setAttribute("data-tooltip", "tooltip");
+      tooltipMinusText.setAttribute("for", "tooltip");
+      tooltipMinusText.appendChild(document.createTextNode("Зменшити кількість"));
+      tooltipMinus.appendChild(tooltipMinusText);
+      minusButton.appendChild(tooltipMinus);
+
+      const amountInput = document.createElement("input");
+      amountInput.setAttribute("class", "amount");
+      amountInput.setAttribute("type", "text");
+      amountInput.setAttribute("value", product.amount);
+      amountInput.setAttribute('readonly', true);
+
+      // plus button
+      const plusButton = document.createElement("button");
+      plusButton.setAttribute("class", "plus-button");
+      plusButton.appendChild(document.createTextNode("+"));
+      const tooltipPlus = document.createElement("section");
+      tooltipPlus.setAttribute("class", "tooltip-div");
+      const tooltipPlusText = document.createElement("label");
+      tooltipPlusText.setAttribute("data-tooltip", "tooltip");
+      tooltipPlusText.setAttribute("for", "tooltip");
+      tooltipPlusText.appendChild(document.createTextNode("Збільшити кількість"));
+      tooltipPlus.appendChild(tooltipPlusText);
+      plusButton.appendChild(tooltipPlus);
+      
+      middleSection.appendChild(minusButton);
+      middleSection.appendChild(amountInput);
+      middleSection.appendChild(plusButton);
+
+      const buyButton = document.createElement("button");
+        //buy button
+      buyButton.setAttribute("class", "buy-button");
+      buyButton.appendChild(document.createTextNode("Куплено"));
+        // cross button
+      const crossButton = document.createElement("button");
+      crossButton.setAttribute("class", "cross-button");
+      crossButton.appendChild(document.createTextNode("\u2716"));
+      const tooltipCross = document.createElement("section");
+      tooltipCross.setAttribute("class", "tooltip-div");
+      const tooltipCrossText = document.createElement("label");
+      tooltipCrossText.setAttribute("data-tooltip", "tooltip");
+      tooltipCrossText.setAttribute("for", "tooltip");
+      tooltipCrossText.appendChild(document.createTextNode("Скасувати"));
+      tooltipCross.appendChild(tooltipCrossText);
+      crossButton.appendChild(tooltipCross);   
+
+      rightSection.appendChild(buyButton);
+      rightSection.appendChild(crossButton);
+
+    } else {
+      const amountInput = document.createElement("input");
+      amountInput.setAttribute("class", "amount");
+      amountInput.setAttribute("type", "text");
+      amountInput.setAttribute("value", product.amount);
+      amountInput.setAttribute('readonly', true);
+
+      middleSection.appendChild(amountInput);
+
+      const noBuyButton = document.createElement("button");
+      noBuyButton.setAttribute("class", "no-buy-button");
+      noBuyButton.appendChild(document.createTextNode("Не куплено"));
+      rightSection.appendChild(noBuyButton);
+    }
+
+    newProduct.appendChild(leftSection);
+    newProduct.appendChild(middleSection);
+    newProduct.appendChild(rightSection);
+
+    document.querySelector(".operations-div").appendChild(newProduct);
+
+    if(product.isSold) {
+      makeBoughtItem(newProduct);
+    } else {
+      newLeftItem(product.name, product.amount);
+    }
+  });
+  allAvailiableProduct = document.querySelectorAll(".product-div");
+  fillWithDefaultValues();
 }
